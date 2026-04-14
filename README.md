@@ -26,8 +26,10 @@ This is the easiest method and requires no local setup. You can deploy everythin
    - Go to your [Cloudflare Dashboard](https://dash.cloudflare.com/) > **Storage & databases** > **D1 SQL Database**.
    - Click **Create**, name it `epic-games-db`, and copy the **Database ID** (e.g., `xxxx-xxxx-xxxx-xxxx`).
 3. **Get Cloudflare Credentials:**
-   - **API Token**: Go to **My Profile** > **API Tokens** > Create a token using the "Edit Cloudflare Workers" template.
-   - **Account ID**: Copy your **Account ID** from the Account home.
+   - **API Token**: Go to **My Profile** > **API Tokens** > Create a Custom Token. Make sure to add the following permissions:
+     - `Account` -> `D1` -> `Edit` (Allows modifying the database)
+     - `Account` -> `Worker Scripts` -> `Edit` (Allows deploying the worker)
+   - **Account ID**: Copy your **Account ID** from the Account home (right sidebar).
 4. **Set up GitHub Secrets:**
    - Go to your forked repository on GitHub > **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
    - Add the following secrets:
