@@ -1,0 +1,49 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Update wrangler.toml variables
+        run: |
+          # Replace variables in wrangler.toml with secrets
+          sed -i "s/YOUR_D1_DATABASE_ID/${{ secrets.D1_DATABASE_ID }}/g" wrangler.toml
+          sed -i "s/your_app_id/${{ secrets.LARK_APP_ID }}/g" wrangler.toml
+          sed -i "s/your_app_secret/${{ secrets.LARK_APP_SECRET }}/g" wrangler.toml
+          
+          # Optional: Override LARK_API_BASE if provided
+          if [ -n "${{ secrets.LARK_API_BASE }}" ]; then
+            sed -i "s|https://open.larksuite.com/|${{ secrets.LARK_API_BASE }}|g" wrangler.toml
+          fi
+
+      - name: Initialize D1 Database Schema
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute epic-games-db --remote --file=./schema.sql
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy

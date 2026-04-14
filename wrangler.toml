@@ -1,0 +1,16 @@
+name = "lark-epic-bot"
+main = "src/index.ts"
+compatibility_date = "2023-10-16"
+
+[triggers]
+crons = ["20 16 * * *"] # Every day at 16:20 UTC
+
+[[d1_databases]]
+binding = "DB"
+database_name = "epic-games-db"
+database_id = "YOUR_D1_DATABASE_ID" # Replace with your actual database ID
+
+[vars]
+LARK_APP_ID = "your_app_id"
+LARK_APP_SECRET = "your_app_secret"
+LARK_API_BASE = "https://open.larksuite.com/"
