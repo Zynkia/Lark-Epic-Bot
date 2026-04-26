@@ -9,3 +9,7 @@ updates:
       prefix: "deps"
     labels:
       - "dependencies"
+    groups:
+      deps:
+        patterns:
+          - "*"
