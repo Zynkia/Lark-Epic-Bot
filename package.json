@@ -10,7 +10,7 @@
     "db:init:remote": "wrangler d1 execute epic-games-db --remote --file=./schema.sql"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231016.0",
+    "@cloudflare/workers-types": "^4.20260426.1",
     "typescript": "^6.0.3",
     "wrangler": "^4.84.0"
   }
