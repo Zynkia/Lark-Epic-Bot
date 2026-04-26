@@ -125,8 +125,8 @@ Once deployed, you will get a Worker URL (e.g., `https://lark-epic-bot.your-subd
 
 Users or groups can interact with the bot using the following text commands:
 
-- **`subscribe`** (or **`订阅`**): Subscribe to daily free game notifications.
-- **`unsubscribe`** (or **`取消订阅`**): Stop receiving daily notifications.
+- **`subscribe`** (or **`订阅`**): Subscribe to new free game notifications.
+- **`unsubscribe`** (or **`取消订阅`**): Stop receiving notifications.
 - **`games`** (or **`免费游戏`**): Check the currently available free games.
 
 ## 🛠️ How It Works

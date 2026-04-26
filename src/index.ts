@@ -112,15 +112,19 @@ async function handleCommand(text: string, chatId: string, chatType: string, env
   const token = await getTenantAccessToken(LARK_APP_ID, LARK_APP_SECRET, LARK_API_BASE);
   if (!token) return;
 
-  if (text === 'subscribe' || text === '订阅') {
+  const isUnsubscribe = text.includes('unsubscribe') || text.includes('取消订阅');
+  const isSubscribe = !isUnsubscribe && (text.includes('subscribe') || text.includes('订阅'));
+  const isGames = text.includes('games') || text.includes('免费游戏');
+
+  if (isSubscribe) {
     await addSubscription(DB, chatId, chatType);
-    const msg = isFeishu ? '✅ 订阅成功！你将每天接收到 Epic 免费游戏推送。' : '✅ Subscribed successfully! You will receive daily Epic free game updates.';
+    const msg = isFeishu ? '✅ 订阅成功！有新的 Epic 免费游戏时将为你推送。' : '✅ Subscribed successfully! You will be notified when new Epic free games are available.';
     await sendTextMessage(msg, chatId, 'chat_id', token, LARK_API_BASE);
-  } else if (text === 'unsubscribe' || text === '取消订阅') {
+  } else if (isUnsubscribe) {
     await removeSubscription(DB, chatId);
     const msg = isFeishu ? '❌ 取消订阅成功。' : '❌ Unsubscribed successfully.';
     await sendTextMessage(msg, chatId, 'chat_id', token, LARK_API_BASE);
-  } else if (text === 'games' || text === '免费游戏') {
+  } else if (isGames) {
     const currentGames = await getCurrentFreeGames(DB);
     if (currentGames.length > 0) {
       await sendGamesCard(currentGames, chatId, 'chat_id', token, LARK_API_BASE);
@@ -130,8 +134,8 @@ async function handleCommand(text: string, chatId: string, chatType: string, env
     }
   } else {
     const msg = isFeishu 
-      ? '🤖 可用命令:\n- **订阅**: 每天定时接收推送\n- **取消订阅**: 停止接收推送\n- **免费游戏**: 查看当前的免费游戏' 
-      : '🤖 Available Commands:\n- **subscribe**: Get daily push\n- **unsubscribe**: Stop push\n- **games**: Check current free games';
+      ? '🤖 可用命令:\n- **订阅**: 有新游戏时接收推送\n- **取消订阅**: 停止接收推送\n- **免费游戏**: 查看当前的免费游戏' 
+      : '🤖 Available Commands:\n- **subscribe**: Get notifications for new free games\n- **unsubscribe**: Stop notifications\n- **games**: Check current free games';
     await sendTextMessage(msg, chatId, 'chat_id', token, LARK_API_BASE);
   }
 }
