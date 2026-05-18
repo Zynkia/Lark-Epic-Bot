@@ -125,7 +125,16 @@ async function handleCommand(text: string, chatId: string, chatType: string, env
     const msg = isFeishu ? '❌ 取消订阅成功。' : '❌ Unsubscribed successfully.';
     await sendTextMessage(msg, chatId, 'chat_id', token, LARK_API_BASE);
   } else if (isGames) {
-    const currentGames = await getCurrentFreeGames(DB);
+    let currentGames = await getCurrentFreeGames(DB);
+
+    if (currentGames.length === 0) {
+      const freeGames = await fetchFreeGames(LARK_API_BASE);
+      if (freeGames.length > 0) {
+        await saveGames(DB, freeGames);
+        currentGames = await getCurrentFreeGames(DB);
+      }
+    }
+
     if (currentGames.length > 0) {
       await sendGamesCard(currentGames, chatId, 'chat_id', token, LARK_API_BASE);
     } else {

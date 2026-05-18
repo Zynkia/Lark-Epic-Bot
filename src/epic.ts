@@ -37,9 +37,25 @@ export async function fetchFreeGames(larkApiBase: string): Promise<EpicGame[]> {
       let startDate = game.effectiveDate;
       let endDate = game.expiryDate;
 
-      const currentPromos = game.promotions?.promotionalOffers?.[0]?.promotionalOffers || [];
-      const upcomingPromos = game.promotions?.upcomingPromotionalOffers?.[0]?.promotionalOffers || [];
-      const activePromo = currentPromos[0] || upcomingPromos[0];
+      // Extract all current and upcoming promos
+      const extractPromos = (promoNodes: any[]) => {
+        const offers: any[] = [];
+        for (const node of promoNodes || []) {
+          for (const offer of node.promotionalOffers || []) {
+            offers.push(offer);
+          }
+        }
+        return offers;
+      };
+
+      const currentPromos = extractPromos(game.promotions?.promotionalOffers);
+      const upcomingPromos = extractPromos(game.promotions?.upcomingPromotionalOffers);
+
+      // Find the free promo (discountPercentage === 0)
+      const freeCurrentPromo = currentPromos.find(p => p.discountSetting?.discountPercentage === 0);
+      const freeUpcomingPromo = upcomingPromos.find(p => p.discountSetting?.discountPercentage === 0);
+
+      const activePromo = freeCurrentPromo || freeUpcomingPromo;
 
       if (activePromo) {
         startDate = activePromo.startDate;
@@ -50,8 +66,8 @@ export async function fetchFreeGames(larkApiBase: string): Promise<EpicGame[]> {
       const discountPrice = game.price?.totalPrice?.discountPrice ?? 0;
       
       const isCurrentlyFree = originalPrice > 0 && discountPrice === 0;
-      const isUpcomingFree = upcomingPromos.length > 0;
-      const isVaultedFree = originalPrice === 0 && discountPrice === 0 && activePromo;
+      const isVaultedFree = originalPrice === 0 && discountPrice === 0 && freeCurrentPromo;
+      const isUpcomingFree = !!freeUpcomingPromo;
 
       if (!isCurrentlyFree && !isUpcomingFree && !isVaultedFree) continue;
 
