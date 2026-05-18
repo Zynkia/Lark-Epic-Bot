@@ -31,40 +31,60 @@ export async function fetchFreeGames(larkApiBase: string): Promise<EpicGame[]> {
     const freeGames: EpicGame[] = [];
 
     for (const game of games) {
-      if (!game.promotions) continue;
+      const categories = game.categories?.map((c: any) => c.path) || [];
+      if (!categories.includes('freegames')) continue;
 
-      const promotionalOffers = game.promotions.promotionalOffers || [];
-      for (const promo of promotionalOffers) {
-        const offers = promo.promotionalOffers || [];
-        for (const offer of offers) {
-          const discountedPrice = game.price?.totalPrice?.discountPrice ?? 0;
+      let startDate = game.effectiveDate;
+      let endDate = game.expiryDate;
 
-          if (discountedPrice !== 0) continue;
+      const currentPromos = game.promotions?.promotionalOffers?.[0]?.promotionalOffers || [];
+      const upcomingPromos = game.promotions?.upcomingPromotionalOffers?.[0]?.promotionalOffers || [];
+      const activePromo = currentPromos[0] || upcomingPromos[0];
 
-          let urlSlug = null;
-          if (game.catalogNs?.mappings?.length > 0) {
-            const mapping = game.catalogNs.mappings.find((m: any) => m.pageSlug);
-            if (mapping) urlSlug = mapping.pageSlug;
-          }
+      if (activePromo) {
+        startDate = activePromo.startDate;
+        endDate = activePromo.endDate;
+      }
 
-          if (!urlSlug) continue;
+      const originalPrice = game.price?.totalPrice?.originalPrice ?? 0;
+      const discountPrice = game.price?.totalPrice?.discountPrice ?? 0;
+      
+      const isCurrentlyFree = originalPrice > 0 && discountPrice === 0;
+      const isUpcomingFree = upcomingPromos.length > 0;
+      const isVaultedFree = originalPrice === 0 && discountPrice === 0 && activePromo;
 
-          const imageUrl = game.keyImages?.[0]?.url || '';
+      if (!isCurrentlyFree && !isUpcomingFree && !isVaultedFree) continue;
 
-          // Create a unique ID for the game
-          const id = `${game.title}_${offer.endDate}`.replace(/\s+/g, '_');
+      let urlSlug = game.catalogNs?.mappings?.[0]?.pageSlug 
+                    || game.productSlug 
+                    || game.urlSlug;
 
-          freeGames.push({
-            id,
-            title: game.title,
-            description: game.description || 'No description available.',
-            image_url: imageUrl,
-            url: `https://store.epicgames.com/${locale}/p/${urlSlug}`,
-            start_date: offer.startDate,
-            end_date: offer.endDate,
-          });
+      if (!urlSlug || urlSlug === '[]') {
+        urlSlug = 'free-games'; 
+      }
+
+      const imageTypes = ['OfferImageWide', 'DieselStoreFrontWide', 'OfferImageTall', 'Thumbnail'];
+      let imageUrl = '';
+      for (const type of imageTypes) {
+        const img = game.keyImages?.find((i: any) => i.type === type);
+        if (img?.url) {
+          imageUrl = img.url;
+          break;
         }
       }
+      if (!imageUrl) imageUrl = game.keyImages?.[0]?.url || '';
+
+      const id = `${game.title}_${endDate || 'unknown'}`.replace(/\s+/g, '_');
+
+      freeGames.push({
+        id,
+        title: game.title,
+        description: game.description || 'No description available.',
+        image_url: imageUrl,
+        url: `https://store.epicgames.com/${locale}/p/${urlSlug}`,
+        start_date: startDate,
+        end_date: endDate || '',
+      });
     }
 
     return freeGames;
