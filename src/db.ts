@@ -13,7 +13,8 @@ export async function saveGames(db: D1Database, games: EpicGame[]): Promise<void
 }
 
 export async function getUnpushedGames(db: D1Database): Promise<EpicGame[]> {
-  const { results } = await db.prepare('SELECT * FROM games WHERE is_pushed = 0').all<EpicGame>();
+  const now = new Date().toISOString();
+  const { results } = await db.prepare('SELECT * FROM games WHERE is_pushed = 0 AND start_date <= ? AND end_date >= ?').bind(now, now).all<EpicGame>();
   return results || [];
 }
 
