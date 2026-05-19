@@ -49,13 +49,11 @@ export async function fetchFreeGames(larkApiBase: string): Promise<EpicGame[]> {
       };
 
       const currentPromos = extractPromos(game.promotions?.promotionalOffers);
-      const upcomingPromos = extractPromos(game.promotions?.upcomingPromotionalOffers);
 
       // Find the free promo (discountPercentage === 0)
       const freeCurrentPromo = currentPromos.find(p => p.discountSetting?.discountPercentage === 0);
-      const freeUpcomingPromo = upcomingPromos.find(p => p.discountSetting?.discountPercentage === 0);
 
-      const activePromo = freeCurrentPromo || freeUpcomingPromo;
+      const activePromo = freeCurrentPromo;
 
       if (activePromo) {
         startDate = activePromo.startDate;
@@ -67,9 +65,9 @@ export async function fetchFreeGames(larkApiBase: string): Promise<EpicGame[]> {
       
       const isCurrentlyFree = originalPrice > 0 && discountPrice === 0;
       const isVaultedFree = originalPrice === 0 && discountPrice === 0 && freeCurrentPromo;
-      const isUpcomingFree = !!freeUpcomingPromo;
 
-      if (!isCurrentlyFree && !isUpcomingFree && !isVaultedFree) continue;
+      // Only process games that are currently free, skip upcoming games
+      if (!isCurrentlyFree && !isVaultedFree) continue;
 
       let urlSlug = game.catalogNs?.mappings?.[0]?.pageSlug 
                     || game.productSlug 
